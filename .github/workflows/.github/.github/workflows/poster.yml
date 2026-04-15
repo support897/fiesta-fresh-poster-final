@@ -1,0 +1,33 @@
+name: Fiesta Fresh Weekly Poster
+
+on:
+  schedule:
+    # 23:00, 0:00, 1:00, 3:00 UTC corresponds to 9am, 10am, 11am, and 1pm Brisbane Time
+    - cron: '0 23,0,1,3 * * *'
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright pytz google-generativeai
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run AI poster
+        env:
+          FB_EMAIL: 'placenciailse@gmail.com'
+          FB_PASSWORD: '20inPG05$$'
+          GEMINI_API_KEY: 'AIzaSyDv_L4pfmZYTVZl3iiq3T0pxUg2D_RZp1U'
+        run: python fb_poster_cloud.py
