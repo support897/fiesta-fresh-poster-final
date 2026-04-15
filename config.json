@@ -1,91 +1,51 @@
 {
-  "_info": "Fiesta Fresh Cleaning — Weekly Facebook Group Poster (Cloud Edition)",
+  "_info": "Fiesta Fresh Cleaning — Weekly Facebook Group Poster (AI Cloud Edition)",
 
   "facebook": {
-    "email": "YOUR_FACEBOOK_EMAIL_HERE",
-    "password": "YOUR_FACEBOOK_PASSWORD_HERE"
+    "email": "placenciailse@gmail.com",
+    "password": "20inPG05$$"
   },
 
-  "post_templates": [
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 1 (copy 1)\n══════════════════════════════════════\n\nExample structure:\n'Looking for a reliable cleaner on the Gold Coast? 💙 Fiesta Fresh Cleaning covers all suburbs — bond, residential & commercial. Police-checked, $5M insured, 200% Happiness Guarantee. Free quote at fiestafreshcleaning.com'",
-
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 2 (slightly different wording)\n══════════════════════════════════════",
-
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 3 (another variation)\n══════════════════════════════════════",
-
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 4 (another variation)\n══════════════════════════════════════",
-
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 5 (another variation)\n══════════════════════════════════════",
-
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 6 (another variation)\n══════════════════════════════════════",
-
-    "══════════════════════════════════════\n✏️  PASTE YOUR POST TEMPLATE HERE\n✏️  This is version 7 (another variation)\n══════════════════════════════════════"
-  ],
-
-  "_template_tip": "Have at least 7 versions — one per day of the week. Each should say the same thing but with different wording so Facebook doesn't flag it as duplicate content.",
-
-  "groups": [
-    "══ PASTE YOUR FACEBOOK GROUP URLS BELOW ══",
-    "══ One URL per line, inside the quotes   ══",
-    "══ Example: https://www.facebook.com/groups/goldharbour ══",
-
-    "https://www.facebook.com/groups/GROUP_URL_1",
-    "https://www.facebook.com/groups/GROUP_URL_2",
-    "https://www.facebook.com/groups/GROUP_URL_3",
-    "https://www.facebook.com/groups/GROUP_URL_4",
-    "https://www.facebook.com/groups/GROUP_URL_5",
-    "https://www.facebook.com/groups/GROUP_URL_6",
-    "https://www.facebook.com/groups/GROUP_URL_7",
-    "https://www.facebook.com/groups/GROUP_URL_8",
-    "https://www.facebook.com/groups/GROUP_URL_9",
-    "https://www.facebook.com/groups/GROUP_URL_10",
-    "https://www.facebook.com/groups/GROUP_URL_11",
-    "https://www.facebook.com/groups/GROUP_URL_12",
-    "https://www.facebook.com/groups/GROUP_URL_13",
-    "https://www.facebook.com/groups/GROUP_URL_14",
-    "https://www.facebook.com/groups/GROUP_URL_15",
-    "https://www.facebook.com/groups/GROUP_URL_16",
-    "https://www.facebook.com/groups/GROUP_URL_17",
-    "https://www.facebook.com/groups/GROUP_URL_18",
-    "https://www.facebook.com/groups/GROUP_URL_19",
-    "https://www.facebook.com/groups/GROUP_URL_20",
-    "https://www.facebook.com/groups/GROUP_URL_21",
-    "https://www.facebook.com/groups/GROUP_URL_22",
-    "https://www.facebook.com/groups/GROUP_URL_23",
-    "https://www.facebook.com/groups/GROUP_URL_24",
-    "https://www.facebook.com/groups/GROUP_URL_25",
-    "https://www.facebook.com/groups/GROUP_URL_26",
-    "https://www.facebook.com/groups/GROUP_URL_27",
-    "https://www.facebook.com/groups/GROUP_URL_28",
-    "https://www.facebook.com/groups/GROUP_URL_29",
-    "https://www.facebook.com/groups/GROUP_URL_30",
-    "https://www.facebook.com/groups/GROUP_URL_31",
-    "https://www.facebook.com/groups/GROUP_URL_32",
-    "https://www.facebook.com/groups/GROUP_URL_33",
-    "https://www.facebook.com/groups/GROUP_URL_34",
-    "https://www.facebook.com/groups/GROUP_URL_35",
-    "https://www.facebook.com/groups/GROUP_URL_36",
-    "https://www.facebook.com/groups/GROUP_URL_37",
-    "https://www.facebook.com/groups/GROUP_URL_38",
-    "https://www.facebook.com/groups/GROUP_URL_39",
-    "https://www.facebook.com/groups/GROUP_URL_40",
-    "https://www.facebook.com/groups/GROUP_URL_41",
-    "https://www.facebook.com/groups/GROUP_URL_42",
-    "https://www.facebook.com/groups/GROUP_URL_43",
-    "https://www.facebook.com/groups/GROUP_URL_44",
-    "https://www.facebook.com/groups/GROUP_URL_45",
-    "https://www.facebook.com/groups/GROUP_URL_46",
-    "https://www.facebook.com/groups/GROUP_URL_47",
-    "https://www.facebook.com/groups/GROUP_URL_48",
-    "https://www.facebook.com/groups/GROUP_URL_49",
-    "https://www.facebook.com/groups/GROUP_URL_50"
-  ],
+  "ai_settings": {
+    "system_prompt": "You are a professional social media manager for Fiesta Fresh Cleaning on the Gold Coast. Rewrite the user's master post into a fresh variation for Facebook. Rules: No dashes (- or —), use blue hearts 💙 only, maximum 5 hashtags. Keep the core offer, messaging, and tone identical to the master post, do not invent new offers or services. Just change the phrasing so it feels fresh.",
+    "master_post": "Looking for a reliable cleaner on the Gold Coast? 💙 Fiesta Fresh Cleaning covers all suburbs. We offer bond cleans, residential, and commercial cleaning. We are police-checked, $5M insured, and offer a 200% Happiness Guarantee. Get a free quote today at fiestafreshcleaning.com!"
+  },
 
   "schedule": {
-    "post_time_local": "09:30",
     "timezone": "Australia/Brisbane",
-    "groups_per_day": 7,
-    "_note": "50 groups ÷ 7 days = ~7 groups per day. Each group gets posted to once per week on a rotating basis."
+    "Monday": {
+      "09": ["https://www.facebook.com/share/g/1CbgwuTsYk/"],
+      "11": ["https://www.facebook.com/share/g/17ZhFPW6Nv/"],
+      "13": ["https://www.facebook.com/share/g/1B27Gxp16H/"]
+    },
+    "Tuesday": {
+      "09": ["https://www.facebook.com/share/g/1QKymNFKGB/"],
+      "11": ["https://www.facebook.com/share/g/18LVQKPo7i/"],
+      "13": ["https://www.facebook.com/share/g/1HtBL7VbvU/"]
+    },
+    "Wednesday": {
+      "09": ["https://www.facebook.com/share/g/1ACxjEMmPz/"],
+      "11": ["https://www.facebook.com/share/g/1AvLccktib/"],
+      "13": ["https://www.facebook.com/share/g/1Ce8GyrQa7/"]
+    },
+    "Thursday": {
+      "09": ["https://www.facebook.com/share/g/1JiqcFo29z/"],
+      "11": ["https://www.facebook.com/share/g/1amVvrFuJW/"],
+      "13": ["https://www.facebook.com/share/g/1FfBrj1rcj/"]
+    },
+    "Friday": {
+      "09": ["https://www.facebook.com/share/g/17TXZukru4/"],
+      "11": ["https://www.facebook.com/share/g/1CujCYNcjN/"],
+      "13": ["https://www.facebook.com/share/g/1H5MZ8PjQx/"]
+    },
+    "Saturday": {
+      "09": ["https://www.facebook.com/share/g/1S1927sm62/"],
+      "11": ["https://www.facebook.com/share/g/18aQe7qUsN/"],
+      "13": ["https://www.facebook.com/share/g/1C3WT4B5DL/"]
+    },
+    "Sunday": {
+      "10": ["https://www.facebook.com/share/g/1b6cBgTmom/"]
+    }
   },
 
   "settings": {

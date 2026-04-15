@@ -1,23 +1,8 @@
 """
-Fiesta Fresh Cleaning — Weekly Facebook Group Poster (GitHub Actions Edition)
+Fiesta Fresh Cleaning — Weekly Facebook Group Poster (AI Cloud Edition)
 =============================================================================
-Designed to run on GitHub Actions — wakes up, posts today's groups, exits.
-Scheduling is handled by GitHub (.github/workflows/poster.yml), not this script.
-
-HOW IT WORKS:
-- GitHub wakes this script up every day at 9:30am Brisbane time
-- Script checks which groups are assigned to today
-- Posts to each group with a delay between each one
-- Exits cleanly when done
-
-ROTATING SCHEDULE (50 groups example):
-  Monday:    Groups 1-7    (template variation 1)
-  Tuesday:   Groups 8-14   (template variation 2)
-  Wednesday: Groups 15-21  (template variation 3)
-  Thursday:  Groups 22-28  (template variation 4)
-  Friday:    Groups 29-35  (template variation 5)
-  Saturday:  Groups 36-42  (template variation 6)
-  Sunday:    Groups 43-50  (template variation 7)
+Designed to run on GitHub Actions at specific hours based on the schedule.
+Uses Google Gemini to rewrite the master post uniquely every time.
 """
 
 import json
@@ -26,7 +11,7 @@ import os
 import random
 import sys
 import time
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from pathlib import Path
 
 try:
@@ -41,35 +26,24 @@ except ImportError:
     print("ERROR: Playwright not installed.")
     sys.exit(1)
 
+try:
+    import google.generativeai as genai
+except ImportError:
+    print("ERROR: google-generativeai not installed. Run: pip install google-generativeai")
+    sys.exit(1)
+
 # ── Load config ───────────────────────────────────────────────────────────────
 CONFIG_PATH = Path(__file__).parent / "config.json"
 with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     CONFIG = json.load(f)
 
-# GitHub Actions injects secrets as environment variables
-# Falls back to config.json values for local testing
 FB_EMAIL    = os.environ.get("FB_EMAIL")    or CONFIG["facebook"]["email"]
 FB_PASSWORD = os.environ.get("FB_PASSWORD") or CONFIG["facebook"]["password"]
-
-# Filter out placeholder lines from groups and templates
-GROUPS = [
-    g for g in CONFIG["groups"]
-    if g.startswith("https://www.facebook.com/groups/")
-    and "GROUP_URL_" not in g
-    and "PASTE" not in g
-    and "══" not in g
-]
-
-TEMPLATES = [
-    t for t in CONFIG["post_templates"]
-    if "PASTE YOUR POST TEMPLATE" not in t
-    and "══" not in t
-    and len(t.strip()) > 30
-]
+GEMINI_KEY  = os.environ.get("GEMINI_API_KEY")
 
 SCHEDULE     = CONFIG["schedule"]
 TIMEZONE     = SCHEDULE["timezone"]
-PER_DAY      = SCHEDULE["groups_per_day"]
+AI_SETTINGS  = CONFIG["ai_settings"]
 
 S            = CONFIG["settings"]
 DRY_RUN      = S["dry_run"]
@@ -89,6 +63,45 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# ── AI Generation ─────────────────────────────────────────────────────────────
+def generate_ai_post() -> str:
+    if not GEMINI_KEY:
+        log.error("GEMINI_API_KEY is not set. Falling back to master post.")
+        return AI_SETTINGS["master_post"]
+    
+    genai.configure(api_key=GEMINI_KEY)
+    model = genai.GenerativeModel(
+        model_name='gemini-2.5-flash',
+        system_instruction=AI_SETTINGS["system_prompt"]
+    )
+    
+    prompt = f"Rewrite this master post following your brand instructions EXACTLY:\n\n{AI_SETTINGS['master_post']}"
+    
+    log.info("Generating fresh AI variation of the post...")
+    try:
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        log.info("AI generation successful.")
+        return text
+    except Exception as e:
+        log.error(f"AI generation failed: {e}")
+        return AI_SETTINGS["master_post"]
+
+# ── Photo Selection ───────────────────────────────────────────────────────────
+def pick_random_photo() -> str:
+    photos_dir = Path(__file__).parent / "photos"
+    if not photos_dir.exists():
+        return ""
+    
+    valid_exts = {".jpg", ".jpeg", ".png", ".webp"}
+    photos = [p for p in photos_dir.iterdir() if p.is_file() and p.suffix.lower() in valid_exts]
+    
+    if not photos:
+        return ""
+        
+    chosen = random.choice(photos)
+    return str(chosen.resolve())
+
 # ── Validation ────────────────────────────────────────────────────────────────
 def validate_config():
     errors = []
@@ -96,38 +109,27 @@ def validate_config():
         errors.append("Facebook email not set — add FB_EMAIL as a GitHub secret.")
     if not FB_PASSWORD or "YOUR_FACEBOOK_PASSWORD" in FB_PASSWORD:
         errors.append("Facebook password not set — add FB_PASSWORD as a GitHub secret.")
-    if not GROUPS:
-        errors.append("No group URLs found — replace GROUP_URL_X placeholders in config.json.")
-    if not TEMPLATES:
-        errors.append("No post templates found — replace placeholder text in config.json.")
     if errors:
         for e in errors:
             log.error(f"CONFIG ERROR: {e}")
         sys.exit(1)
-    log.info(f"Config OK — {len(GROUPS)} groups | {len(TEMPLATES)} templates")
+    log.info("Config OK.")
 
 # ── Schedule helpers ──────────────────────────────────────────────────────────
-def get_todays_groups() -> list:
+def get_current_scheduled_groups() -> list:
     """
-    Returns the slice of groups assigned to today based on a 7-day rotation.
-    Same groups always post on the same weekday every week.
+    Looks up the schedule for the current Day and current Hour.
     """
-    total     = len(GROUPS)
-    day_index = datetime.now(TZ).weekday()  # 0=Monday, 6=Sunday
-    start     = day_index * PER_DAY
-    end       = start + PER_DAY
+    now = datetime.now(TZ)
+    day_name = now.strftime("%A")     # e.g., "Monday"
+    hour_str = now.strftime("%H")     # e.g., "09"
 
-    if start >= total:
-        return []
-
-    return GROUPS[start:min(end, total)]
-
-
-def pick_template(day_index: int) -> str:
-    """Rotate through template variations by day of week."""
-    if not TEMPLATES:
-        return ""
-    return TEMPLATES[day_index % len(TEMPLATES)]
+    log.info(f"Checking schedule for {day_name} at hour {hour_str}:00...")
+    
+    if day_name in SCHEDULE and hour_str in SCHEDULE[day_name]:
+        return SCHEDULE[day_name][hour_str]
+    
+    return []
 
 # ── Post history ──────────────────────────────────────────────────────────────
 def load_history() -> dict:
@@ -136,18 +138,15 @@ def load_history() -> dict:
             return json.load(f)
     return {"posts": {}}
 
-
 def save_history(data: dict):
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
-
-def was_posted_this_week(history: dict, group_url: str) -> bool:
+def was_posted_today(history: dict, group_url: str) -> bool:
     if group_url not in history["posts"]:
         return False
     last_date = datetime.fromisoformat(history["posts"][group_url]).date()
-    return (date.today() - last_date).days < 6
-
+    return last_date == datetime.now(TZ).date()
 
 def record_post(history: dict, group_url: str):
     history["posts"][group_url] = datetime.now(TZ).isoformat()
@@ -156,13 +155,11 @@ def record_post(history: dict, group_url: str):
 def human_delay(min_s: float, max_s: float):
     time.sleep(random.uniform(min_s, max_s))
 
-
 def human_type(element, text: str):
     for char in text:
         element.type(char, delay=random.randint(45, 135))
         if random.random() < 0.04:
             time.sleep(random.uniform(0.1, 0.4))
-
 
 def scroll_down(page):
     page.evaluate(f"window.scrollBy(0, {random.randint(200, 500)})")
@@ -208,7 +205,7 @@ def login(page):
     log.info("Logged in ✓")
 
 
-def post_to_group(page, group_url: str, post_text: str) -> bool:
+def post_to_group(page, group_url: str, post_text: str, photo_path: str) -> bool:
     """Navigate to a group and post. Returns True on success."""
     log.info(f"  → {group_url}")
 
@@ -263,6 +260,19 @@ def post_to_group(page, group_url: str, post_text: str) -> bool:
         log.warning(f"  Could not find text input.")
         return False
 
+    # Upload photo if any
+    if photo_path:
+        log.info(f"  Attaching photo: {Path(photo_path).name}")
+        try:
+            file_input = page.locator("input[type='file'][accept*='image']").last
+            if file_input.count() > 0:
+                file_input.set_input_files(photo_path)
+                human_delay(5, 8) # Waiting longer for photo upload preview to process
+            else:
+                log.warning("  Could not find the file input selector.")
+        except Exception as e:
+            log.warning(f"  Failed to attach photo: {e}")
+
     text_box.click()
     human_delay(0.5, 1.5)
     human_type(text_box, post_text)
@@ -294,43 +304,42 @@ def post_to_group(page, group_url: str, post_text: str) -> bool:
     page.keyboard.press("Escape")
     return False
 
-# ── Main — runs once and exits cleanly ───────────────────────────────────────
+# ── Main — runs check, posts, exits cleanly ──────────────────────────────────
 def main():
     validate_config()
 
     today      = datetime.now(TZ)
-    day_index  = today.weekday()
     day_name   = today.strftime("%A %d %b %Y")
 
     log.info(f"{'='*60}")
-    log.info(f"Fiesta Fresh Poster — {day_name}")
+    log.info(f"Fiesta Fresh AI Poster — {day_name}")
     log.info(f"Mode: {'⚪ DRY RUN' if DRY_RUN else '🔴 LIVE'}")
     log.info(f"{'='*60}")
 
-    todays_groups = get_todays_groups()
+    groups_to_post = get_current_scheduled_groups()
 
-    if not todays_groups:
-        log.info("No groups assigned for today. Exiting.")
+    if not groups_to_post:
+        log.info("No groups scheduled for this hour. Going back to sleep. 💤")
         sys.exit(0)
 
-    history  = load_history()
-    template = pick_template(day_index)
-
-    if not template:
-        log.error("No post template found. Fill in config.json → post_templates.")
-        sys.exit(1)
-
-    pending = [g for g in todays_groups if not was_posted_this_week(history, g)]
-
-    log.info(f"Today's groups: {len(todays_groups)} | Pending: {len(pending)}")
-
+    history = load_history()
+    pending = [g for g in groups_to_post if not was_posted_today(history, g)]
+    
     if not pending:
-        log.info("All today's groups already posted this week. Exiting.")
+        log.info("Already posted to scheduled groups for this hour today. Exiting.")
         sys.exit(0)
+        
+    log.info(f"Groups to post this hour: {len(pending)}")
+
+    # Generate the unique AI post for this run
+    ai_post_text = generate_ai_post()
+    
+    # Pick a random photo globally for this run
+    photo_path = pick_random_photo()
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(
-            headless=True,   # invisible — no screen needed on GitHub's servers
+            headless=True,
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
@@ -370,7 +379,7 @@ def main():
 
         for i, group_url in enumerate(pending, 1):
             log.info(f"[{i}/{len(pending)}]")
-            success = post_to_group(page, group_url, template)
+            success = post_to_group(page, group_url, ai_post_text, photo_path)
 
             if success:
                 if not DRY_RUN:
@@ -388,10 +397,9 @@ def main():
         browser.close()
 
     log.info(f"{'='*60}")
-    log.info(f"Done — ✅ {success_count} posted | ❌ {fail_count} failed")
+    log.info(f"Done — ✅ {success_count} AI variations posted | ❌ {fail_count} failed")
     log.info(f"{'='*60}")
-    sys.exit(0)  # ← Tells GitHub Actions: job complete, all good
-
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
