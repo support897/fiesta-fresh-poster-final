@@ -49,7 +49,7 @@
   },
 
   "settings": {
-    "dry_run": true,
+    "dry_run": false,
     "min_delay_between_posts_seconds": 300,
     "max_delay_between_posts_seconds": 600,
     "min_delay_page_load_seconds": 3,
