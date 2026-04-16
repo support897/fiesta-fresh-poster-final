@@ -26,9 +26,8 @@ on:
                                                                                                                 playwright install-deps chromium
                                                                                                                 
                                                                                                                       - name: Run AI poster
-                                                                                                                              env:
-                                                                                                                                        FB_EMAIL: ${{ secrets.FB_EMAIL }}
-                                                                                                                                                  FB_PASSWORD: ${{ secrets.FB_PASSWORD }}
-                                                                                                                                                            GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-                                                                                                                                                                    run: python fb_poster_cloud.py
-                                                                                                                                                                    
+                                                                           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        env:
+          FB_EMAIL: ${{ secrets.FB_EMAIL }}
+          FB_PASSWORD: ${{ secrets.FB_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
