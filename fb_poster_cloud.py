@@ -294,7 +294,8 @@ def post_to_group(page, group_url: str, post_text: str, photo_path: str) -> bool
             btn = page.locator(sel).last
             if btn.count() > 0:
                 btn.click()
-                human_delay(3, 5)
+                log.info("  Waiting 20 seconds for Facebook's background photo upload to finish...")
+                time.sleep(20)
                 log.info(f"  ✅ Posted.")
                 return True
         except Exception:
