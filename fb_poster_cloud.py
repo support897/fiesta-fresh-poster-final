@@ -181,14 +181,14 @@ def login(page):
         except Exception:
             pass
 
-    email_field = page.locator("#email")
+    email_field = page.locator('input[name="email"], input[aria-label*="Email"], #email').first
     email_field.wait_for(timeout=8000)
     email_field.click()
     human_delay(0.3, 0.8)
     human_type(email_field, FB_EMAIL)
     human_delay(0.5, 1.2)
 
-    pass_field = page.locator("#pass")
+    pass_field = page.locator('input[name="pass"], input[aria-label*="Password"], #pass').first
     pass_field.click()
     human_delay(0.3, 0.8)
     human_type(pass_field, FB_PASSWORD)
