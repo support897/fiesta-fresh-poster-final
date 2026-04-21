@@ -275,7 +275,7 @@ def post_to_group(page, group_url: str, post_text: str, photo_path: str) -> bool
 
     text_box.click()
     human_delay(0.5, 1.5)
-    human_type(text_box, post_text)
+    page.keyboard.insert_text(post_text)
     human_delay(2, 4)
 
     if DRY_RUN:
@@ -293,15 +293,27 @@ def post_to_group(page, group_url: str, post_text: str, photo_path: str) -> bool
         try:
             btn = page.locator(sel).last
             if btn.count() > 0:
+                group_id = Path(group_url).name
+                page.screenshot(path=f"screenshot_01_filled_{group_id}.png", full_page=True)
+
+                if btn.get_attribute("aria-disabled") == "true" or btn.get_attribute("disabled") is not None:
+                    log.error(f"  CRITICAL: Facebook Post button is visibly GRAYED OUT/DISABLED.")
+                    log.error("  Taking failure screenshot and aborting this post...")
+                    page.screenshot(path=f"screenshot_02_failed_disabled_{group_id}.png", full_page=True)
+                    page.keyboard.press("Escape")
+                    return False
+
                 btn.click()
                 log.info("  Waiting 20 seconds for Facebook's background photo upload to finish...")
                 time.sleep(20)
                 log.info(f"  ✅ Posted.")
+                page.screenshot(path=f"screenshot_03_success_{group_id}.png", full_page=True)
                 return True
         except Exception:
             continue
 
     log.warning(f"  Could not find Post button.")
+    page.screenshot(path="screenshot_02_failed_missing_btn.png", full_page=True)
     page.keyboard.press("Escape")
     return False
 
