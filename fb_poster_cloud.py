@@ -40,6 +40,7 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
 FB_EMAIL    = os.environ.get("FB_EMAIL")    or CONFIG["facebook"]["email"]
 FB_PASSWORD = os.environ.get("FB_PASSWORD") or CONFIG["facebook"]["password"]
 GEMINI_KEY  = os.environ.get("GEMINI_API_KEY")
+FB_AUTH_STATE = os.environ.get("FB_AUTH_STATE")
 
 SCHEDULE     = CONFIG["schedule"]
 TIMEZONE     = SCHEDULE["timezone"]
@@ -105,10 +106,11 @@ def pick_random_photo() -> str:
 # ── Validation ────────────────────────────────────────────────────────────────
 def validate_config():
     errors = []
-    if not FB_EMAIL or "YOUR_FACEBOOK_EMAIL" in FB_EMAIL:
-        errors.append("Facebook email not set — add FB_EMAIL as a GitHub secret.")
-    if not FB_PASSWORD or "YOUR_FACEBOOK_PASSWORD" in FB_PASSWORD:
-        errors.append("Facebook password not set — add FB_PASSWORD as a GitHub secret.")
+    if not FB_AUTH_STATE:
+        if not FB_EMAIL or "YOUR_FACEBOOK_EMAIL" in FB_EMAIL:
+            errors.append("Facebook email not set — add FB_EMAIL as a GitHub secret.")
+        if not FB_PASSWORD or "YOUR_FACEBOOK_PASSWORD" in FB_PASSWORD:
+            errors.append("Facebook password not set — add FB_PASSWORD as a GitHub secret.")
     if errors:
         for e in errors:
             log.error(f"CONFIG ERROR: {e}")
@@ -361,6 +363,15 @@ def main():
             ]
         )
 
+        # Setup Cookie Magic!
+        storage_state_arg = None
+        if FB_AUTH_STATE:
+            try:
+                storage_state_arg = json.loads(FB_AUTH_STATE)
+                log.info("Detected FB_AUTH_STATE! Activating Trusted Cookie Session Bypass...")
+            except Exception as e:
+                log.error(f"Failed to parse FB_AUTH_STATE as JSON: {e}")
+
         context = browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -370,6 +381,7 @@ def main():
             viewport={"width": 1366, "height": 768},
             locale="en-AU",
             timezone_id="Australia/Brisbane",
+            storage_state=storage_state_arg,
         )
 
         context.add_init_script("""
@@ -381,7 +393,18 @@ def main():
         page = context.new_page()
 
         try:
-            login(page)
+            if FB_AUTH_STATE:
+                log.info("Loading Facebook with pre-injected cookies...")
+                page.goto("https://www.facebook.com/", wait_until="domcontentloaded")
+                human_delay(2, 4)
+                if "login" in page.url.lower():
+                    log.error("Cookie bypass failed! Meta rejected the session. Capturing tracker screenshot.")
+                    page.screenshot(path="screenshot_00_COOKIE_REJECTED.png", full_page=True)
+                    browser.close()
+                    sys.exit(1)
+                log.info("Cookie Auth Success! Skipped manual login screen entirely.")
+            else:
+                login(page)
         except Exception as e:
             log.error(f"FATAL LOGIN ERROR: {e}")
             page.screenshot(path="screenshot_00_LOGIN_FAILED.png", full_page=True)
