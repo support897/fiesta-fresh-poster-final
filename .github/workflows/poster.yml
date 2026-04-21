@@ -33,6 +33,7 @@ jobs:
           FB_EMAIL: ${{ secrets.FB_EMAIL }}
           FB_PASSWORD: ${{ secrets.FB_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FB_AUTH_STATE: ${{ secrets.FB_AUTH_STATE }}
         run: python fb_poster_cloud.py
 
       - name: Upload Debug Screenshots
