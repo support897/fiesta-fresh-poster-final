@@ -382,8 +382,8 @@ def main():
 
         try:
             login(page)
-        except RuntimeError as e:
-            log.error(str(e))
+        except Exception as e:
+            log.error(f"FATAL LOGIN ERROR: {e}")
             page.screenshot(path="screenshot_00_LOGIN_FAILED.png", full_page=True)
             browser.close()
             sys.exit(1)
